@@ -1,0 +1,11 @@
+/Users/olegpavlovich/Projects/stupidnet/bin/Debug/netcoreapp2.2/stupidnet.deps.json
+/Users/olegpavlovich/Projects/stupidnet/bin/Debug/netcoreapp2.2/stupidnet.runtimeconfig.json
+/Users/olegpavlovich/Projects/stupidnet/bin/Debug/netcoreapp2.2/stupidnet.runtimeconfig.dev.json
+/Users/olegpavlovich/Projects/stupidnet/bin/Debug/netcoreapp2.2/stupidnet.dll
+/Users/olegpavlovich/Projects/stupidnet/bin/Debug/netcoreapp2.2/stupidnet.pdb
+/Users/olegpavlovich/Projects/stupidnet/obj/Debug/netcoreapp2.2/stupidnet.csprojAssemblyReference.cache
+/Users/olegpavlovich/Projects/stupidnet/obj/Debug/netcoreapp2.2/stupidnet.csproj.CoreCompileInputs.cache
+/Users/olegpavlovich/Projects/stupidnet/obj/Debug/netcoreapp2.2/stupidnet.AssemblyInfoInputs.cache
+/Users/olegpavlovich/Projects/stupidnet/obj/Debug/netcoreapp2.2/stupidnet.AssemblyInfo.cs
+/Users/olegpavlovich/Projects/stupidnet/obj/Debug/netcoreapp2.2/stupidnet.dll
+/Users/olegpavlovich/Projects/stupidnet/obj/Debug/netcoreapp2.2/stupidnet.pdb
