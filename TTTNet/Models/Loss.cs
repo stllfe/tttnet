@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace stupidnet.Models
+namespace TTT.Models
 {
     public abstract class Loss
     {
-        //public abstract float Calculate(float[] predictions, float[] trueValues);
+        public abstract float Mean(float[] predictions, float[] trueValues);
+        public abstract float[] ElementWise(float[] predictions, float[] trueValues);
         protected void ValidateInput(float[] predictions, float[] trueValues)
         {
             if(predictions.Length != trueValues.Length)
@@ -14,21 +16,22 @@ namespace stupidnet.Models
                 $"Size mismatch: {predictions.Length} and {trueValues.Length}");
             }
         }
-    }
+    } 
 
     public class MSELoss : Loss
     {
-        public float Calculate(float[] predictions, float[] trueValues)
+        public override float Mean(float[] predictions, float[] trueValues)
+        {
+            var n = predictions.Length;
+            return ElementWise(predictions, trueValues).Sum() / n;
+        }
+
+        public override float[] ElementWise(float[] predictions, float[] trueValues)
         {
             ValidateInput(predictions, trueValues);
-            var n = predictions.Length;
-            var sum = 0f;
-            for (int i = 0; i < n; ++i)
-            {
-                sum += (float) Math.Pow((trueValues[i] - predictions[i]), 2);
-            }
-            return sum / n;
-            // May be also handy to divide by 2 because of derivative
+            float[] loss = trueValues.Zip(predictions, (y, y_) => 0.5f * ((float) Math.Pow(y - y_, 2))).ToArray();
+            return loss; // FIXME: Bad boy! Choose only one collection type!
         }
     }
+
 }

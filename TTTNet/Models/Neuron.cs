@@ -4,19 +4,19 @@ using System.Linq;
 
 namespace TTT.Models
 {
-    public class Neuron : Unit
+    public sealed class Neuron : Unit
     {
         private float[] _weights;
         private float _bias;
-        private bool _activation;
+        private readonly bool _activation;
 
         public override string ToString()
         {            
             var parameters = new Dictionary<string, String>()
             {
-                {"Connections", _weights.Length.ToString()},
-                {"Weights", String.Join("; ", _weights)},
-                {"Bias", _bias.ToString()},
+                { "Connections", _weights.Length.ToString() },
+                { "Weights", String.Join("; ", _weights) },
+                { "Bias", _bias.ToString() },
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
             return String.Join(Environment.NewLine, printable);
@@ -44,11 +44,7 @@ namespace TTT.Models
         public override float ForwardPass(float[] input)
         {   
             ValidateInput(input);
-            var signals = new float[input.Length];
-            for (int i = 0; i < signals.Length; ++i)
-            {
-                signals[i] = input[i] * _weights[i];
-            }
+            var signals = input.Zip(_weights, (i, w) => i * w);
             var signal = signals.Sum() + _bias;
             return _activation ? Activation(signal) : signal;
         } 

@@ -7,20 +7,25 @@ namespace TTT.Models
     public class Net : Module
     {
         public String Name { get; }
-        private int _hiddenLayerSize;
-        private int _numberOfHiddenLayers;
-        private int _inputSize;
-        private int _outputSize;
-        public List<Layer> layers { get; } = new List<Layer>();
+        public int InputSize { get => _inputSize; }
+        public int OutputSize { get => _outputSize; }
+        public List<Layer> Layers { get; } = new List<Layer>();
+
+
+        private readonly int _hiddenLayerSize;
+        private readonly int _numberOfHiddenLayers;
+        private readonly int _inputSize;
+        private readonly int _outputSize;
+
 
         public Net(string name, int inputSize, int outputSize, int numberOfHiddenLayers = 0, int hiddenLayerSize = 2)
         {
-            this.Name = name;
-            
-            this._inputSize = inputSize;
-            this._outputSize = outputSize;
-            this._numberOfHiddenLayers = numberOfHiddenLayers;
-            this._hiddenLayerSize = hiddenLayerSize;
+            Name = name;
+
+            _inputSize = inputSize;
+            _outputSize = outputSize;
+            _numberOfHiddenLayers = numberOfHiddenLayers;
+            _hiddenLayerSize = hiddenLayerSize;
 
             // TODO: add a check 
             // Assuming they are all not empty and correct!
@@ -29,23 +34,23 @@ namespace TTT.Models
 
             for (int i = 0; i < this._numberOfHiddenLayers; ++i)
             {
-                layers.Add(new Layer(this._hiddenLayerSize, numberOfConnections));
-                numberOfConnections = layers.Last().neurons.Count();
+                Layers.Add(new Layer(_hiddenLayerSize, numberOfConnections));
+                numberOfConnections = Layers.Last().Neurons.Count();
             }
 
             // the output layers should not have activations
-            layers.Add(new Layer(this._outputSize, hiddenLayerSize, false));
+            Layers.Add(new Layer(_outputSize, hiddenLayerSize, false));
         }
 
         public override string ToString()
         {
-            var parameters = new Dictionary<string, String>()
-            { 
-                { "Net", this.Name }, 
-                { "Depth", (this._numberOfHiddenLayers + 2).ToString() }, 
-                { "Sizes", 
-                    this._inputSize + " x " + 
-                    String.Join(" x ", this.layers.Select (l => l.neurons.Count ()))
+            var parameters = new Dictionary<string, string>()
+            {
+                { "Net", Name },
+                { "Depth", (_numberOfHiddenLayers + 2).ToString() },
+                { "Sizes",
+                    _inputSize + " x " +
+                    String.Join(" x ", from layer in Layers select layer.Neurons.Count())
                 },
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
@@ -56,7 +61,7 @@ namespace TTT.Models
         {
 
             var output = new float[_inputSize];
-            foreach (var layer in this.layers)
+            foreach (var layer in Layers)
             {
                 output = layer.ForwardPass(input);
                 input = output;
@@ -72,9 +77,9 @@ namespace TTT.Models
         protected override void ValidateInput(float[] input)
         {
             // FIXME: Won't work on backward pass. Change this
-            if (input.Length != this._inputSize)
+            if (input.Length != _inputSize)
             {
-                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {this._inputSize}");
+                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {_inputSize}");
             }
         }
     }
@@ -82,21 +87,21 @@ namespace TTT.Models
 
     public class Layer : Module
     {
-        public List<Neuron> neurons { get; } = new List<Neuron>();
+        public List<Neuron> Neurons { get; } = new List<Neuron>();
         public Layer(int numberOfNeurons, int numberOfConnections, bool activation = true)
         {
             for (int i = 0; i < numberOfNeurons; ++i)
             {
-                neurons.Add(new Neuron(numberOfConnections, activation));
+                Neurons.Add(new Neuron(numberOfConnections, activation));
             }
         }
 
         public override float[] ForwardPass(float[] input)
         {
-            var results = new float[this.neurons.Count()];
-            for (int i = 0; i < this.neurons.Count(); ++i)
+            var results = new float[Neurons.Count()];
+            for (int i = 0; i < Neurons.Count(); ++i)
             {
-                results[i] = this.neurons[i].ForwardPass(input);
+                results[i] = Neurons[i].ForwardPass(input);
             }
             return results;
         }
@@ -121,7 +126,8 @@ namespace TTT.Models
 
     public abstract class Module : Atom<float[]>
     {
-
+        // FIXME: bad structural decision
+        // public abstract void BackwardPass(float value);
     }
 
     public abstract class Unit : Atom<float>
