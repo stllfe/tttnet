@@ -11,7 +11,7 @@ namespace stupidnet
             float[] inputs = new float[]{0.1f, .34f, 3.1f, .5f, 3f, 2f};
             int numberOfConnections = inputs.Length;
             Neuron neu = new Neuron(numberOfConnections);
-            Console.WriteLine(neu.forwardPass(inputs));
+            Console.WriteLine(neu.ForwardPass(inputs));
 
             Console.WriteLine(Environment.NewLine);
             Net net = new Net(
@@ -22,7 +22,7 @@ namespace stupidnet
                 hiddenLayerSize: 4);
             Console.WriteLine(net.ToString());
 
-            var results = net.forwardPass(inputs);
+            var results = net.ForwardPass(inputs);
             Console.WriteLine(String.Join(", ", results));
         }
     }

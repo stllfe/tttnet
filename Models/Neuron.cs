@@ -8,20 +8,21 @@ namespace stupidnet.Models
     {
         private float[] _weights;
         private float _bias;
+        private bool _activation;
 
         public override string ToString()
         {            
             var parameters = new Dictionary<string, String>()
             {
-                {"Connections", this._weights.Length.ToString()},
-                {"Weights", String.Join("; ", this._weights)},
-                {"Bias", this._bias.ToString()},
+                {"Connections", _weights.Length.ToString()},
+                {"Weights", String.Join("; ", _weights)},
+                {"Bias", _bias.ToString()},
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
             return String.Join(Environment.NewLine, printable);
         }
 
-        public Neuron(int numberOfConnections)
+        public Neuron(int numberOfConnections, bool activation = true)
         {
             if (numberOfConnections < 1)
             {
@@ -31,42 +32,45 @@ namespace stupidnet.Models
             float eps = .001f;
 
             this._weights = new float[numberOfConnections];
-            this._bias = (float) (gen.NextDouble() + eps) % 1;
+            this._bias = (float)(gen.NextDouble() + eps) % 1;
+            this._activation = activation;
 
             for (int i = 0; i < numberOfConnections; ++i)
             {
-                _weights[i] = (float) (gen.NextDouble() + eps) % 1;
+                _weights[i] = (float)(gen.NextDouble() + eps) % 1;
             }
         }
 
-        public float forwardPass(float[] input)
+        public override float ForwardPass(float[] input)
         {   
-            if (input.Length != this._weights.Length){
-                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {this._weights.Length}");
-            }
+            ValidateInput(input);
             var signals = new float[input.Length];
             for (int i = 0; i < signals.Length; ++i)
             {
-                signals[i] = input[i] * this._weights[i];
+                signals[i] = input[i] * _weights[i];
             }
-            var signal = this.activation(signals.Sum() + this._bias);
-            return signal;
+            var signal = signals.Sum() + _bias;
+            return _activation ? Activation(signal) : signal;
         } 
 
-        public void backwardPass(float[] gradient)
+        public override void BackwardPass(float[] gradient)
         {
-            if (gradient.Length != this._weights.Length){
-                throw new ArgumentException($"Inputs size: {gradient.Length} doesn't match the number of connections: {this._weights.Length}");
-            }
-
+            ValidateInput(gradient);
         }
 
-        private float defLoss()
+        protected override void ValidateInput(float[] input)
+        {
+            if (input.Length != _weights.Length){
+                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {_weights.Length}");
+            }
+        }
+
+        private float DefLoss()
         {
             return 1f;
         }
 
-        private float activation(float input)
+        private float Activation(float input)
         {
             // pretty much Sigmoid function
             var sigmoid = 1.0f / (1.0f + (float) Math.Exp(-input));
@@ -74,4 +78,5 @@ namespace stupidnet.Models
             return sigmoid;
         }
     }
+
 }

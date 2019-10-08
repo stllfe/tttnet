@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace stupidnet.Models
 {
@@ -15,60 +15,66 @@ namespace stupidnet.Models
         public Net(string name, int inputSize, int outputSize, int numberOfHiddenLayers = 0, int hiddenLayerSize = 2)
         {
             this.Name = name;
-
+            
             this._inputSize = inputSize;
             this._outputSize = outputSize;
             this._numberOfHiddenLayers = numberOfHiddenLayers;
             this._hiddenLayerSize = hiddenLayerSize;
-            
+
             // TODO: add a check 
             // Assuming they are all not empty and correct!
 
-            var numberOfLayers = 2 + this._numberOfHiddenLayers;
             var numberOfConnections = this._inputSize;
-            var layerSize = 1;
 
-            for (int i = 0; i < numberOfLayers; ++i)
+            for (int i = 0; i < this._numberOfHiddenLayers; ++i)
             {
-                layers.Add(new Layer(layerSize, numberOfConnections));
+                layers.Add(new Layer(this._hiddenLayerSize, numberOfConnections));
                 numberOfConnections = layers.Last().neurons.Count();
             }
 
-            layers.Add(new Layer(this._outputSize, hiddenLayerSize));
+            // the output layers should not have activations
+            layers.Add(new Layer(this._outputSize, hiddenLayerSize, false));
         }
 
         public override string ToString()
-        {            
+        {
             var parameters = new Dictionary<string, String>()
-            {
-                {"Net", this.Name},
-                {"Depth", (this._numberOfHiddenLayers + 2).ToString()},
-                {"Sizes", this._inputSize + " x " 
-                        + String.Join(" x ", this.layers.Select(l => l.neurons.Count())) + " x " 
-                        + this._outputSize
+            { 
+                { "Net", this.Name }, 
+                { "Depth", (this._numberOfHiddenLayers + 2).ToString() }, 
+                { "Sizes", 
+                    this._inputSize + " x " + 
+                    String.Join(" x ", this.layers.Select (l => l.neurons.Count ()))
                 },
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
             return String.Join(Environment.NewLine, printable);
         }
 
-        public float[] forwardPass(float[] input)
-        {   
-            if (input.Length != this._inputSize){
-                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {this._inputSize}");
-            }
+        public override float[] ForwardPass(float[] input)
+        {
+
             var output = new float[_inputSize];
-            foreach(var layer in this.layers)
+            foreach (var layer in this.layers)
             {
-                output = layer.forwardPass(input);
+                output = layer.ForwardPass(input);
                 input = output;
             }
             return output;
-        } 
+        }
 
-        public void backwardPass(float[] gradient)
+        public override void BackwardPass(float[] gradient)
         {
 
+        }
+
+        protected override void ValidateInput(float[] input)
+        {
+            // FIXME: Won't work on backward pass. Change this
+            if (input.Length != this._inputSize)
+            {
+                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {this._inputSize}");
+            }
         }
     }
 
@@ -76,45 +82,49 @@ namespace stupidnet.Models
     public class Layer : Module
     {
         public List<Neuron> neurons { get; } = new List<Neuron>();
-        public Layer(int numberOfNeurons, int numberOfConnections)
+        public Layer(int numberOfNeurons, int numberOfConnections, bool activation = true)
         {
             for (int i = 0; i < numberOfNeurons; ++i)
             {
-                neurons.Add(new Neuron(numberOfConnections));
+                neurons.Add(new Neuron(numberOfConnections, activation));
             }
         }
 
-        public float[] forwardPass(float[] input)
+        public override float[] ForwardPass(float[] input)
         {
             var results = new float[this.neurons.Count()];
             for (int i = 0; i < this.neurons.Count(); ++i)
             {
-                results[i] = this.neurons[i].forwardPass(input);
+                results[i] = this.neurons[i].ForwardPass(input);
             }
             return results;
-        }   
+        }
 
-        public void backwardPass(float[] gradient)
+        public override void BackwardPass(float[] gradient)
+        {
+
+        }
+
+        protected override void ValidateInput(float[] input)
         {
 
         }
     }
 
-
-    public interface Atom<T>
+    public abstract class Atom<T>
     {
-        T forwardPass(float[] input);
-        void backwardPass(float[] gradient);
+        public abstract T ForwardPass(float[] input);
+        public abstract void BackwardPass(float[] gradient);
+        protected abstract void ValidateInput(float[] input);
     }
 
-    public interface Module: Atom<float[]>
+    public abstract class Module : Atom<float[]>
     {
 
     }
 
-    public interface Unit: Atom<float>
+    public abstract class Unit : Atom<float>
     {
 
     }
 }
-
