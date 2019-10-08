@@ -1,0 +1,10 @@
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/obj/Debug/netcoreapp1.1/TTTNet.csprojAssemblyReference.cache
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/obj/Debug/netcoreapp1.1/TTTNet.AssemblyInfoInputs.cache
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/obj/Debug/netcoreapp1.1/TTTNet.AssemblyInfo.cs
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/bin/Debug/netcoreapp1.1/TTTNet.deps.json
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/bin/Debug/netcoreapp1.1/TTTNet.runtimeconfig.json
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/bin/Debug/netcoreapp1.1/TTTNet.runtimeconfig.dev.json
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/bin/Debug/netcoreapp1.1/TTTNet.dll
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/bin/Debug/netcoreapp1.1/TTTNet.pdb
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/obj/Debug/netcoreapp1.1/TTTNet.dll
+/home/oleg/Playground/MonoProjects/TTTNet/TTTNet/obj/Debug/netcoreapp1.1/TTTNet.pdb

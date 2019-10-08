@@ -1,0 +1,16 @@
+﻿<Properties StartupConfiguration="{57D1C1F7-37D9-4CE7-91DE-6079F95A4E97}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="TTTNet/Models/Neuron.cs">
+    <Files>
+      <File FileName="TTTNet/Program.cs" Line="9" Column="40" />
+      <File FileName="TTTNet/Models/Net.cs" Line="65" Column="1" />
+      <File FileName="TTTNet/Models/Neuron.cs" Line="5" Column="14" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.TTTNet PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
