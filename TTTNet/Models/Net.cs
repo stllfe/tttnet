@@ -11,12 +11,10 @@ namespace TTT.Models
         public int OutputSize { get => _outputSize; }
         public List<Layer> Layers { get; } = new List<Layer>();
 
-
         private readonly int _hiddenLayerSize;
         private readonly int _numberOfHiddenLayers;
         private readonly int _inputSize;
         private readonly int _outputSize;
-
 
         public Net(string name, int inputSize, int outputSize, int numberOfHiddenLayers = 0, int hiddenLayerSize = 2)
         {
@@ -30,9 +28,9 @@ namespace TTT.Models
             // TODO: add a check 
             // Assuming they are all not empty and correct!
 
-            var numberOfConnections = this._inputSize;
+            var numberOfConnections = _inputSize;
 
-            for (int i = 0; i < this._numberOfHiddenLayers; ++i)
+            for (int i = 0; i < _numberOfHiddenLayers; ++i)
             {
                 Layers.Add(new Layer(_hiddenLayerSize, numberOfConnections));
                 numberOfConnections = Layers.Last().Neurons.Count();
@@ -72,6 +70,11 @@ namespace TTT.Models
         public override void BackwardPass(float[] gradient)
         {
 
+        }
+
+        public void BackwardPass(float gradient)
+        { 
+             
         }
 
         protected override void ValidateInput(float[] input)
@@ -120,7 +123,7 @@ namespace TTT.Models
     public abstract class Atom<T>
     {
         public abstract T ForwardPass(float[] input);
-        public abstract void BackwardPass(float[] gradient);
+        public abstract float BackwardPass(float[] gradient);
         protected abstract void ValidateInput(float[] input);
     }
 

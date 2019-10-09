@@ -9,7 +9,9 @@ namespace TTT.Models
         private float[] _weights;
         private float _bias;
         private readonly bool _activation;
-
+        private float _learningRate;
+        private IFunction _activationFn = new Sigmoid(); // FIXME: Whoops, hardcoded!!!
+        private float _lastActivation;
         public override string ToString()
         {            
             var parameters = new Dictionary<string, String>()
@@ -22,18 +24,22 @@ namespace TTT.Models
             return String.Join(Environment.NewLine, printable);
         }
 
-        public Neuron(int numberOfConnections, bool activation = true)
+        public Neuron(int numberOfConnections, bool activation = true, float learningRate = 0.001f)
         {
             if (numberOfConnections < 1)
             {
                 throw new ArgumentException($"Number of connections: {numberOfConnections} can't be less than 1");
             }
+
+            _activation = activation;
+            _learningRate = learningRate;
+
+            // Initialize weights and biases
             Random gen = new Random();
             float eps = .001f;
 
-            this._weights = new float[numberOfConnections];
-            this._bias = (float)(gen.NextDouble() + eps) % 1;
-            this._activation = activation;
+            _weights = new float[numberOfConnections];
+            _bias = (float)(gen.NextDouble() + eps) % 1;
 
             for (int i = 0; i < numberOfConnections; ++i)
             {
@@ -46,12 +52,15 @@ namespace TTT.Models
             ValidateInput(input);
             var signals = input.Zip(_weights, (i, w) => i * w);
             var signal = signals.Sum() + _bias;
-            return _activation ? Activation(signal) : signal;
+            _lastActivation = _activation ? _activationFn.Calculate(signal) : signal;
+            return _lastActivation;
         } 
 
-        public override void BackwardPass(float[] gradient)
+        public override float BackwardPass(float[] gradient)
         {
             ValidateInput(gradient);
+            var weightedGradient = gradient.Zip(_weights, (i, w) => i * w);
+            _weights = _weights.Zip(weightedGradient, (w, g) => w +  ;)
         }
 
         protected override void ValidateInput(float[] input)
@@ -64,14 +73,6 @@ namespace TTT.Models
         private float DefLoss()
         {
             return 1f;
-        }
-
-        private float Activation(float input)
-        {
-            // pretty much Sigmoid function
-            var sigmoid = 1.0f / (1.0f + (float) Math.Exp(-input));
-            // var relu = Math.Max(0, input);
-            return sigmoid;
         }
     }
 
