@@ -25,7 +25,7 @@ namespace TTT.Models
             _numberOfHiddenLayers = numberOfHiddenLayers;
             _hiddenLayerSize = hiddenLayerSize;
 
-            // TODO: add a check 
+            // TODO: add a value check 
             // Assuming they are all not empty and correct!
 
             var numberOfConnections = _inputSize;
@@ -109,9 +109,12 @@ namespace TTT.Models
             return results;
         }
 
-        public override void BackwardPass(float[] gradient)
+        public override float[] BackwardPass(float[] gradient)
         {
-
+            // Propogate gradients through the layer
+            var gradients = new float[Neurons.Count()];
+            foreach
+            return gradients;
         }
 
         protected override void ValidateInput(float[] input)
@@ -123,7 +126,7 @@ namespace TTT.Models
     public abstract class Atom<T>
     {
         public abstract T ForwardPass(float[] input);
-        public abstract float BackwardPass(float[] gradient);
+        public abstract float[] BackwardPass(float[] gradient);
         protected abstract void ValidateInput(float[] input);
     }
 

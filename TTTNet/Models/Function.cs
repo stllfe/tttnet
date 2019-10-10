@@ -18,7 +18,8 @@ namespace TTT.Models
 
         public float Derivative(float x)
         {
-
+            x = Calculate(x);
+            return x * (1 - x);
         }
     }
 }
