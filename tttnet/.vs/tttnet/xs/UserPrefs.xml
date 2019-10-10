@@ -1,0 +1,19 @@
+﻿<Properties StartupConfiguration="{0024705A-DCBA-40FD-AAC4-33492A5EA327}|Default">
+  <MonoDevelop.Ide.ItemProperties.tttnet PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="tttnet/Program.cs">
+    <Files>
+      <File FileName="tttnet/Program.cs" Line="51" Column="33" />
+      <File FileName="tttnet/Models/Net.cs" Line="64" Column="26" />
+      <File FileName="tttnet/Models/Neuron.cs" Line="64" Column="1" />
+      <File FileName="tttnet/Models/Loss.cs" Line="35" Column="9" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/home/oleg/Playground/MonoProjects/tttnet/tttnet/tttnet/Program.cs" relfile="tttnet/Program.cs" line="51" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
