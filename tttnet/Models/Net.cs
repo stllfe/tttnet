@@ -127,7 +127,7 @@ namespace TTT.Models
 
         public override float[] BackwardPass(float[] gradient)
         {
-            // Obrain all the weighted errors from neurons
+            // Obtain all the weighted errors from neurons
             // Sum all them across all the neurons
             // Profit!
             var neronErrors = new float[_numberOfNeurons][];

@@ -46,7 +46,5 @@ namespace TTT.Models
             ValidateInput(predictions, trueValues);
             return trueValues.Zip(predictions, (y, y_) => -(y - y_)).ToArray();
         }
-
     }
-
 }
