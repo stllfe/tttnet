@@ -1,15 +1,22 @@
 ﻿<Properties StartupConfiguration="{0024705A-DCBA-40FD-AAC4-33492A5EA327}|Default">
   <MonoDevelop.Ide.ItemProperties.tttnet PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="tttnet/Program.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="tttnet/Models/Loss.cs">
     <Files>
-      <File FileName="tttnet/Program.cs" Line="1" Column="1" />
+      <File FileName="tttnet/Program.cs" Line="14" Column="16" />
+      <File FileName="tttnet/Models/Neuron.cs" Line="17" Column="36" />
+      <File FileName="tttnet/Models/Net.cs" Line="117" Column="28" />
+      <File FileName="tttnet/Models/BasicClasses.cs" Line="3" Column="2" />
+      <File FileName="tttnet/Models/Function.cs" Line="1" Column="1" />
+      <File FileName="tttnet/Models/Loss.cs" Line="16" Column="18" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
           <Node name="tttnet" expanded="True">
             <Node name="tttnet" expanded="True">
-              <Node name="Program.cs" selected="True" />
+              <Node name="Models" expanded="True">
+                <Node name="Loss.cs" selected="True" />
+              </Node>
             </Node>
           </Node>
         </State>

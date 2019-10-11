@@ -38,6 +38,7 @@
     <Compile Include="Models\Neuron.cs" />
     <Compile Include="Models\Loss.cs" />
     <Compile Include="Models\Net.cs" />
+    <Compile Include="Models\BasicClasses.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

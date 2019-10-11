@@ -8,7 +8,6 @@ namespace TTT.Models
         float Derivative(float x);
     }
 
-
     public class Sigmoid : IFunction
     {
         public float Calculate(float x)

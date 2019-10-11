@@ -13,25 +13,27 @@ namespace TTT
             int numberOfConnections = inputs.Length;
             // int numberOfConnections = 4 * 4;
             Net net = new Net(
-                name: "TikTacToe", 
-                inputSize: numberOfConnections, 
+                name: "TikTacToe",
+                inputSize: numberOfConnections,
                 outputSize: numberOfConnections,
-                numberOfHiddenLayers: 1,
-                hiddenLayerSize: 2);
+                numberOfHiddenLayers: 2,
+                hiddenLayerSize: 4,
+                outputActivations: false
+                );
             Console.WriteLine(net);
 
-            // Let's script things out in order to check them
-            net.Layers[0].Neurons[0].Weights = new float[] { .15f, .20f };
-            net.Layers[0].Neurons[1].Weights = new float[] { .25f, .30f };
-            net.Layers[0].Neurons[0].Bias = net.Layers[0].Neurons[1].Bias = 0.35f;
+            //// Let's script things out in order to check them
+            //net.Layers[0].Neurons[0].Weights = new float[] { .15f, .20f };
+            //net.Layers[0].Neurons[1].Weights = new float[] { .25f, .30f };
+            //net.Layers[0].Neurons[0].Bias = net.Layers[0].Neurons[1].Bias = 0.35f;
 
-            net.Layers[1].Neurons[0].Weights = new float[] { .40f, .45f };
-            net.Layers[1].Neurons[1].Weights = new float[] { .50f, .55f };
-            net.Layers[1].Neurons[0].Bias = net.Layers[1].Neurons[1].Bias = 0.60f;
+            //net.Layers[1].Neurons[0].Weights = new float[] { .40f, .45f };
+            //net.Layers[1].Neurons[1].Weights = new float[] { .50f, .55f };
+            //net.Layers[1].Neurons[0].Bias = net.Layers[1].Neurons[1].Bias = 0.60f;
 
-            // Enabling last activations
-            net.Layers[1].Neurons[0].Activation = true;
-            net.Layers[1].Neurons[1].Activation = true;
+            //// Enabling last activations
+            //net.Layers[1].Neurons[0].Activation = true;
+            //net.Layers[1].Neurons[1].Activation = true;
 
             var bareResults = net.ForwardPass(inputs);
             Console.WriteLine("\nFirst forward pass results: " + string.Join(", ", bareResults));
@@ -48,9 +50,10 @@ namespace TTT
             Console.WriteLine("Losses per output: " + string.Join(", ", loss.ElementWise(oneRoundResults, trueValues)));
             Console.WriteLine("Total loss: " + loss.Sum(oneRoundResults, trueValues));
 
-            var epoches = 40000;
-            var logEvery = 1000;
+            var epoches = 1000;
+            var logEvery = 100;
 
+            Console.WriteLine($"\nRun {epoches}"); 
             for (int epoch = 0; epoch < epoches; ++epoch)
             {
                 var results = net.ForwardPass(inputs);
@@ -65,7 +68,6 @@ namespace TTT
             }
 
         }
-
 
         static void Train(
             Net net, 

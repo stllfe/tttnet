@@ -8,17 +8,15 @@ namespace TTT.Models
     {
         private float[] _weights;
         private float _bias;
-        private bool _activation;
+
+        private readonly bool _withActivation;
         private readonly float _learningRate;
+
         private IFunction _activationFn = new Sigmoid(); // FIXME: Whoops, hardcoded!!!
 
-        // Two caching attributes
+        // Two memorizing attributes
         private float _lastSignal;
         private float[] _lastInput;
-
-        public float[] Weights { get => _weights; set => _weights = value; }
-        public float Bias { get => _bias; set => _bias = value; }
-        public bool Activation { get => _activation; set => _activation = value; }
 
         public Neuron(int numberOfConnections, bool activation = true, float learningRate = 0.5f)
         {
@@ -27,7 +25,7 @@ namespace TTT.Models
                 throw new ArgumentException($"Number of connections: {numberOfConnections} can't be less than 1");
             }
 
-            _activation = activation;
+            _withActivation = activation;
             _learningRate = learningRate;
 
             // Initialize weights and biases
@@ -50,31 +48,29 @@ namespace TTT.Models
             var signal = signals.Sum() + _bias;
             _lastInput = input;
             _lastSignal = signal;
-            return _activation ? _activationFn.Calculate(signal) : signal;
+            return _withActivation ? _activationFn.Calculate(signal) : signal;
         } 
 
-        public override float BackwardPass(float[] gradient)
+        public override float[] BackwardPass(float neuronError)
         {
-            ValidateInput(gradient);
-            // Actually we could cache something like the final output as _o
-            // and then dActivation would equal _o * (1 - _o), 
-            // but even though it's efficient, I don't want to hardcode stuff
-            var weightedGradient = gradient.Zip(_weights, (i, w) => i * w).ToArray();
-            var dA = _activation ? _activationFn.Derivative(_lastSignal) : 1;
+            var weightedGradient = _weights.Select(w => neuronError * w).ToArray();
+            var dA = _withActivation ? _activationFn.Derivative(_lastSignal) : 1;
 
             // Updating the weights
             for (int i = 0; i < _weights.Length; ++i)
             {
-                _weights[i] = _weights[i] - gradient[i] * dA * _learningRate * _lastInput[i];
+                _weights[i] = _weights[i] - neuronError * dA * _learningRate * _lastInput[i];
             }
 
-            return weightedGradient.Sum();
+            return weightedGradient;
         }
 
         protected override void ValidateInput(float[] input)
         {
+            var erros = $"Inputs size: {input.Length} doesn't match " +
+                        $"the number of connections: {_weights.Length}";
             if (input.Length != _weights.Length){
-                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {_weights.Length}");
+                throw new ArgumentException();
             }
         }
 
@@ -83,11 +79,11 @@ namespace TTT.Models
             var parameters = new Dictionary<string, string>()
             {
                 { "Connections", _weights.Length.ToString() },
-                { "Weights", String.Join("; ", _weights) },
+                { "Weights", string.Join("; ", _weights) },
                 { "Bias", _bias.ToString() },
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
-            return String.Join(Environment.NewLine, printable);
+            return string.Join(Environment.NewLine, printable);
         }
     }
 
