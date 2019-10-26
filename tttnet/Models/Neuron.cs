@@ -10,13 +10,16 @@ namespace TTT.Models
         private float _bias;
 
         private readonly bool _withActivation;
-        private readonly float _learningRate;
+        private float _learningRate;
+        public float LearningRate { get => _learningRate; set => _learningRate = value; }
 
         private IFunction _activationFn = new Sigmoid(); // FIXME: Whoops, hardcoded!!!
 
         // Two memorizing attributes
         private float _lastSignal;
         private float[] _lastInput;
+
+
 
         public Neuron(int numberOfConnections, bool activation = true, float learningRate = 0.5f)
         {
@@ -59,7 +62,7 @@ namespace TTT.Models
             // Updating the weights
             for (int i = 0; i < _weights.Length; ++i)
             {
-                _weights[i] = _weights[i] - neuronError * dA * _learningRate * _lastInput[i];
+                _weights[i] = _weights[i] - neuronError * dA * LearningRate * _lastInput[i];
             }
 
             return weightedGradient;

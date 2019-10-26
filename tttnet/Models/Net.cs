@@ -30,23 +30,24 @@ namespace TTT.Models
             HiddenLayerSize = hiddenLayerSize;
 
             // TODO: add a value check 
-            // Assuming they are all not empty and correct!
+            // Assuming they are all correct!
 
-            var numberOfConnections = InputSize;
+            int numberOfConnections = InputSize;
 
             for (int i = 0; i < NumberOfHiddenLayers; ++i)
             {
-                Layers.Add(new Layer(HiddenLayerSize, numberOfConnections));
-                numberOfConnections = Layers.Last().Neurons.Count();
+                
+                Layers.Add(new Layer(hiddenLayerSize, numberOfConnections));
+                numberOfConnections = Layers.Last().NumberOfNeurons;
             }
 
-            Layers.Add(new Layer(OutputSize, hiddenLayerSize, outputActivations));
+            Layers.Add(new Layer(outputSize, hiddenLayerSize, outputActivations));
         }
 
         public override float[] ForwardPass(float[] input)
         {
             ValidateInput(input);
-            foreach (var layer in Layers)
+            foreach (Layer layer in Layers)
             {
                 input = layer.ForwardPass(input);
             }
@@ -56,7 +57,7 @@ namespace TTT.Models
         public override float[] BackwardPass(float[] gradient)
         {
             ValidateInput(gradient, Direction.Backward);
-            foreach (var layer in Layers.Reverse<Layer>())
+            foreach (Layer layer in Layers.Reverse<Layer>())
             {
                 gradient = layer.BackwardPass(gradient);
             }
@@ -65,18 +66,31 @@ namespace TTT.Models
 
         protected override void ValidateInput(float[] input, Direction direction = Direction.Forward)
         {
-            var comparingLayerSize = direction == Direction.Forward ? InputSize : OutputSize;
-            if (input.Length != comparingLayerSize)
+            int layerSize;
+
+            if (direction == Direction.Forward)
+            {
+                layerSize = InputSize;
+            }
+            else if (direction == Direction.Backward)
+            {
+                layerSize = OutputSize;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            if (input.Length != layerSize)
             {
                 var error = $"Inputs size: {input.Length} doesn't match " +
-                            $"the number of connections: {comparingLayerSize}";
+                            $"the number of connections: {layerSize}";
                 throw new ArgumentException(error);
             }
         }
 
         public override string ToString()
         {
-            var layerSizes = from layer in Layers select layer.Neurons.Count();
+            int[] layerSizes = Layers.Select(l => l.Neurons.Count()).ToArray();
             var parameters = new Dictionary<string, string>()
             {
                 { "Net", Name },
@@ -86,18 +100,43 @@ namespace TTT.Models
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
             return string.Join(Environment.NewLine, printable);
         }
+
+        public void SetLearningRate(float learningRate)
+        {
+            foreach (Layer layer in Layers)
+            {
+                foreach (Neuron neuron in layer.Neurons)
+                {
+                    neuron.LearningRate = learningRate;
+                }
+            }
+        }
+
+        public void DumpState(string path)
+        {
+
+        }
+
+        public void LoadState(string path)
+        {
+
+        }
     }
 
     public class Layer : Module
     {
+        public int NumberOfNeurons { get; }
+        public int NumberOfConnections { get; }
         public List<Neuron> Neurons { get; } = new List<Neuron>();
-        private readonly int _numberOfNeurons;
-        private readonly int _numberOfConnections;
 
         public Layer(int numberOfNeurons, int numberOfConnections, bool activation = true)
         {
-            _numberOfNeurons = numberOfNeurons;
-            _numberOfConnections = numberOfConnections;
+            if ((numberOfNeurons < 1) || (numberOfConnections < 1))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            NumberOfNeurons = numberOfNeurons;
+            NumberOfConnections = numberOfConnections;
 
             for (int i = 0; i < numberOfNeurons; ++i)
             {
@@ -107,8 +146,8 @@ namespace TTT.Models
 
         public override float[] ForwardPass(float[] input)
         {
-            float[] results = new float[_numberOfNeurons];
-            for (int i = 0; i < _numberOfNeurons; ++i)
+            var results = new float[NumberOfNeurons];
+            for (int i = 0; i < NumberOfNeurons; ++i)
             {
                 results[i] = Neurons[i].ForwardPass(input);
             }
@@ -117,10 +156,10 @@ namespace TTT.Models
 
         protected override void ValidateInput(float[] input, Direction direction)
         {
-            if (input.Length != _numberOfNeurons)
+            if (input.Length != NumberOfNeurons)
             {
                 var error = $"Inputs size: {input.Length} doesn't match " +
-                            $"the number of connections: {_numberOfNeurons}";
+                            $"the number of connections: {NumberOfNeurons}";
                 throw new ArgumentException(error);
             }
         }
@@ -128,20 +167,20 @@ namespace TTT.Models
         public override float[] BackwardPass(float[] gradient)
         {
             // Obtain all the weighted errors from neurons
-            // Sum all them across all the neurons
+            // Sum them all per each connection (axis = 0)
             // Profit!
-            var neronErrors = new float[_numberOfNeurons][];
-            for (int i = 0; i < _numberOfNeurons; ++i)
+            var neuronsErrors = new float[NumberOfNeurons][];
+            for (int i = 0; i < NumberOfNeurons; ++i)
             {
-                neronErrors[i] = Neurons[i].BackwardPass(gradient[i]);
+                neuronsErrors[i] = Neurons[i].BackwardPass(gradient[i]);
             }
 
-            var layerGradient = new float[_numberOfConnections];
-            for (int i = 0; i < _numberOfNeurons; ++i)
+            var layerGradient = new float[NumberOfConnections];
+            for (int i = 0; i < NumberOfNeurons; ++i)
             {
-                for (int j = 0; j < _numberOfConnections; ++j)
+                for (int j = 0; j < NumberOfConnections; ++j)
                 {
-                    layerGradient[j] += neronErrors[i][j];
+                    layerGradient[j] += neuronsErrors[i][j];
                 }
             }
             return layerGradient;

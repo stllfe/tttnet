@@ -1,86 +1,70 @@
 ﻿using System;
 using TTT.Models;
 using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 
 namespace TTT
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            float[] inputs = {.05f, .10f};
-            float[] trueValues = { .01f, .99f};
-            int numberOfConnections = inputs.Length;
-            // int numberOfConnections = 4 * 4;
+            string rootFolderPath = @"/Users/olegpavlovich/Projects/tttnet/tttnet";
+            string trainingDataPath = $"{rootFolderPath}/trainingData.txt";
+            string trainingLabelsPath = $"{rootFolderPath}/trainingLabels.txt";
+
+            int sideSize = 4;
+            int inputSize = sideSize * sideSize;
             Net net = new Net(
                 name: "TikTacToe",
-                inputSize: numberOfConnections,
-                outputSize: numberOfConnections,
-                numberOfHiddenLayers: 2,
+                inputSize: inputSize,
+                outputSize: 2,
+                numberOfHiddenLayers: 1,
                 hiddenLayerSize: 4,
                 outputActivations: false
                 );
+
+            net.SetLearningRate(0.1f);
             Console.WriteLine(net);
 
-            //// Let's script things out in order to check them
-            //net.Layers[0].Neurons[0].Weights = new float[] { .15f, .20f };
-            //net.Layers[0].Neurons[1].Weights = new float[] { .25f, .30f };
-            //net.Layers[0].Neurons[0].Bias = net.Layers[0].Neurons[1].Bias = 0.35f;
-
-            //net.Layers[1].Neurons[0].Weights = new float[] { .40f, .45f };
-            //net.Layers[1].Neurons[1].Weights = new float[] { .50f, .55f };
-            //net.Layers[1].Neurons[0].Bias = net.Layers[1].Neurons[1].Bias = 0.60f;
-
-            //// Enabling last activations
-            //net.Layers[1].Neurons[0].Activation = true;
-            //net.Layers[1].Neurons[1].Activation = true;
-
-            var bareResults = net.ForwardPass(inputs);
-            Console.WriteLine("\nFirst forward pass results: " + string.Join(", ", bareResults));
-
-            var loss = new MSELoss();
-            Console.WriteLine("Losses per output: " + string.Join(", ", loss.ElementWise(bareResults, trueValues)));
-            Console.WriteLine("Total loss: " + loss.Sum(bareResults, trueValues));
-
-            var firsFradient = loss.Derivative(bareResults, trueValues);
-            net.BackwardPass(firsFradient);
-
-            var oneRoundResults = net.ForwardPass(inputs);
-            Console.WriteLine("\nSecond forward pass results: " + string.Join(", ", oneRoundResults));
-            Console.WriteLine("Losses per output: " + string.Join(", ", loss.ElementWise(oneRoundResults, trueValues)));
-            Console.WriteLine("Total loss: " + loss.Sum(oneRoundResults, trueValues));
-
-            var epoches = 1000;
-            var logEvery = 100;
-
-            Console.WriteLine($"\nRun {epoches}"); 
-            for (int epoch = 0; epoch < epoches; ++epoch)
+            string[] rawData = DataManipulator.ReadData(@trainingDataPath);
+            if (rawData.Length % sideSize != 0)
             {
-                var results = net.ForwardPass(inputs);
-                var gradient = loss.Derivative(results, trueValues);
-                net.BackwardPass(gradient);
-
-                if (epoch % logEvery == 0)
+                var error = $"Data doesn't satisfy the board size: {sideSize}x{sideSize}";
+                throw new Exception(error);
+            }
+            var numberOfExamples = rawData.Length / sideSize;
+            float[] encoded = DataManipulator.LabelEncode(rawData)
+                .SelectMany(a => a).ToArray();
+            float[][] data = new float[numberOfExamples][];
+            for (int i = 0; i < numberOfExamples; ++i)
+            {
+                data[i] = new float[inputSize];
+                for (int j = 0; j < inputSize; ++j)
                 {
-                    var error = loss.Sum(results, trueValues);
-                    Console.WriteLine($"[{epoch}/{epoches}] loss: [{error}]");
+                    data[i][j] += encoded[i * j + j];
                 }
             }
 
+            string[] rawLabels = DataManipulator.ReadData(@trainingLabelsPath);
+            float[][] labels = rawLabels
+                .Select(l => l.Where(ch => char.IsDigit(ch))
+                .Select(ch => float.Parse(ch.ToString()))
+                .ToArray()).ToArray();
+
+            Train(net, new MSELoss(), data, labels);
         }
 
         static void Train(
-            Net net, 
-            Loss lossFn, 
-            float[][] dataset, 
-            float[][] trueValues, 
-            int batchsize=4, 
-            int epoches=100, 
-            int logEvery=10)
+            Net net,
+            Loss lossFn,
+            float[][] dataset,
+            float[][] trueValues,
+            int epoches = 1000,
+            int logEvery = 100
+            )
         {
-            // FIXME: Add a new entity called Dataset? So that we would have trueValues and examples in one object
-            // FIXME: Add checking for arguments. Also need to split dataset to batches
-
             var numberOfExamples = dataset.GetLength(0);
 
             for (int epoch = 0; epoch < epoches; ++epoch)
@@ -93,12 +77,12 @@ namespace TTT
 
                     epochLosses[e] = lossFn.Mean(output, trueValues[e]);
                     net.BackwardPass(gradient);
-
-                    if (e % logEvery == 0)
-                    {
-                        Console.WriteLine($"done: [{e}/{numberOfExamples}]");
-                    }
-                    //net.BackwardPass(loss);
+                }
+                if (epoch % logEvery == 0)
+                {
+                    var output = net.ForwardPass(dataset[2]);
+                    var gradient = lossFn.Derivative(output, trueValues[2]);
+                    Console.WriteLine($"true: {string.Join(", ", trueValues[2])} predicted: {string.Join(", ", output)}");
                 }
                 Console.WriteLine($"epoch: [{epoch}/{epoches}] mean loss: {epochLosses.Sum() / numberOfExamples}");
             }

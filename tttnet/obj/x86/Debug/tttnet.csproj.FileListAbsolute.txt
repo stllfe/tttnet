@@ -8,3 +8,8 @@
 /home/oleg/Playground/MonoProjects/tttnet/tttnet/obj/x86/Debug/tttnet.csprojAssemblyReference.cache
 /home/oleg/Playground/MonoProjects/tttnet/tttnet/obj/x86/Debug/tttnet.exe
 /home/oleg/Playground/MonoProjects/tttnet/tttnet/obj/x86/Debug/tttnet.pdb
+/Users/olegpavlovich/Projects/tttnet/tttnet/bin/Debug/tttnet.exe
+/Users/olegpavlovich/Projects/tttnet/tttnet/bin/Debug/tttnet.pdb
+/Users/olegpavlovich/Projects/tttnet/tttnet/obj/x86/Debug/tttnet.csprojAssemblyReference.cache
+/Users/olegpavlovich/Projects/tttnet/tttnet/obj/x86/Debug/tttnet.exe
+/Users/olegpavlovich/Projects/tttnet/tttnet/obj/x86/Debug/tttnet.pdb

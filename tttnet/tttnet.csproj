@@ -39,6 +39,11 @@
     <Compile Include="Models\Loss.cs" />
     <Compile Include="Models\Net.cs" />
     <Compile Include="Models\BasicClasses.cs" />
+    <Compile Include="Models\DataManipulator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="trainingData.txt" />
+    <None Include="trainingLabels.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

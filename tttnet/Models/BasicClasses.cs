@@ -13,8 +13,8 @@
 
     }
 
-    // Module consists of units
-    // It always passes a collection of signals between all its units
+    // Module consists of units.
+    // It always passes a collection of signals between all its units.
     public abstract class Module : INeural<float[]>
     {
         public abstract float[] BackwardPass(float[] gradient);
