@@ -14,12 +14,15 @@ namespace TTT.Models
 
         public List<Layer> Layers { get; } = new List<Layer>();
 
+        public Function Activation { get; }
+
         public Net(
             string name,
             int inputSize,
             int outputSize,
             int numberOfHiddenLayers = 0,
             int hiddenLayerSize = 2,
+            Function activation = null,
             bool outputActivations = true)
         {
             Name = name;
@@ -29,19 +32,29 @@ namespace TTT.Models
             NumberOfHiddenLayers = numberOfHiddenLayers;
             HiddenLayerSize = hiddenLayerSize;
 
-            // TODO: add a value check 
-            // Assuming they are all correct!
+            if (activation == null) {
+                activation = new Sigmoid();
+            }
+
+            Activation = activation;
 
             int numberOfConnections = InputSize;
 
             for (int i = 0; i < NumberOfHiddenLayers; ++i)
             {
                 
-                Layers.Add(new Layer(hiddenLayerSize, numberOfConnections));
+                Layers.Add(new Layer(hiddenLayerSize, numberOfConnections, Activation));
                 numberOfConnections = Layers.Last().NumberOfNeurons;
             }
 
-            Layers.Add(new Layer(outputSize, hiddenLayerSize, outputActivations));
+            if (outputActivations) 
+            {
+                Layers.Add(new Layer(outputSize, hiddenLayerSize, Activation));
+            }
+            else 
+            {
+                Layers.Add(new Layer(outputSize, hiddenLayerSize)); 
+            }            
         }
 
         public override float[] ForwardPass(float[] input)
@@ -66,21 +79,8 @@ namespace TTT.Models
 
         protected override void ValidateInput(float[] input, Direction direction = Direction.Forward)
         {
-            int layerSize;
-
-            if (direction == Direction.Forward)
-            {
-                layerSize = InputSize;
-            }
-            else if (direction == Direction.Backward)
-            {
-                layerSize = OutputSize;
-            }
-            else
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            if (input.Length != layerSize)
+           int layerSize = direction == Direction.Forward ? InputSize : OutputSize;
+           if (input.Length != layerSize)
             {
                 var error = $"Inputs size: {input.Length} doesn't match " +
                             $"the number of connections: {layerSize}";
@@ -93,9 +93,9 @@ namespace TTT.Models
             int[] layerSizes = Layers.Select(l => l.Neurons.Count()).ToArray();
             var parameters = new Dictionary<string, string>()
             {
-                { "Net", Name },
+                { "Name", Name },
                 { "Depth", (NumberOfHiddenLayers + 2).ToString() },
-                { "Sizes", InputSize + " x " + string.Join(" x ", layerSizes)},
+                { "Sizes", InputSize + " x " + string.Join(" x ", layerSizes) },
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
             return string.Join(Environment.NewLine, printable);
@@ -105,10 +105,7 @@ namespace TTT.Models
         {
             foreach (Layer layer in Layers)
             {
-                foreach (Neuron neuron in layer.Neurons)
-                {
-                    neuron.LearningRate = learningRate;
-                }
+                layer.SetLearningRate(learningRate);
             }
         }
 
@@ -129,7 +126,7 @@ namespace TTT.Models
         public int NumberOfConnections { get; }
         public List<Neuron> Neurons { get; } = new List<Neuron>();
 
-        public Layer(int numberOfNeurons, int numberOfConnections, bool activation = true)
+        public Layer(int numberOfNeurons, int numberOfConnections, Function activation = null)
         {
             if ((numberOfNeurons < 1) || (numberOfConnections < 1))
             {
@@ -184,6 +181,14 @@ namespace TTT.Models
                 }
             }
             return layerGradient;
+        }
+
+        public void SetLearningRate(float learningRate)
+        {
+            foreach (Neuron neuron in Neurons)
+                {
+                    neuron.LearningRate = learningRate;
+                }
         }
     }
 }
