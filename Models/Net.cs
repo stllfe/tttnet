@@ -2,129 +2,193 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace stupidnet.Models
+namespace TTT.Models
 {
-    public class Net : Module
+    public sealed class Net : Module
     {
-        public String Name { get; }
-        private int _hiddenLayerSize;
-        private int _numberOfHiddenLayers;
-        private int _inputSize;
-        private int _outputSize;
-        public List<Layer> layers { get; } = new List<Layer>();
-        public Net(string name, int inputSize, int outputSize, int numberOfHiddenLayers = 0, int hiddenLayerSize = 2)
+        public string Name { get; }
+        public int InputSize { get; }
+        public int OutputSize { get; }
+        public int HiddenLayerSize { get; }
+        public int NumberOfHiddenLayers { get; }
+
+        public List<Layer> Layers { get; } = new List<Layer>();
+
+        public Function Activation { get; }
+
+        public Net(
+            string name,
+            int inputSize,
+            int outputSize,
+            int numberOfHiddenLayers = 0,
+            int hiddenLayerSize = 2,
+            Function activation = null,
+            bool outputActivations = true)
         {
-            this.Name = name;
-            
-            this._inputSize = inputSize;
-            this._outputSize = outputSize;
-            this._numberOfHiddenLayers = numberOfHiddenLayers;
-            this._hiddenLayerSize = hiddenLayerSize;
+            Name = name;
+            InputSize = inputSize;
+            OutputSize = outputSize;
 
-            // TODO: add a check 
-            // Assuming they are all not empty and correct!
+            NumberOfHiddenLayers = numberOfHiddenLayers;
+            HiddenLayerSize = hiddenLayerSize;
 
-            var numberOfConnections = this._inputSize;
-
-            for (int i = 0; i < this._numberOfHiddenLayers; ++i)
-            {
-                layers.Add(new Layer(this._hiddenLayerSize, numberOfConnections));
-                numberOfConnections = layers.Last().neurons.Count();
+            if (activation == null) {
+                activation = new Sigmoid();
             }
 
-            // the output layers should not have activations
-            layers.Add(new Layer(this._outputSize, hiddenLayerSize, false));
+            Activation = activation;
+
+            int numberOfConnections = InputSize;
+
+            for (int i = 0; i < NumberOfHiddenLayers; ++i)
+            {
+                
+                Layers.Add(new Layer(hiddenLayerSize, numberOfConnections, Activation));
+                numberOfConnections = Layers.Last().NumberOfNeurons;
+            }
+
+            if (outputActivations) 
+            {
+                Layers.Add(new Layer(outputSize, hiddenLayerSize, Activation));
+            }
+            else 
+            {
+                Layers.Add(new Layer(outputSize, hiddenLayerSize)); 
+            }            
+        }
+
+        public override float[] ForwardPass(float[] input)
+        {
+            ValidateInput(input);
+            foreach (Layer layer in Layers)
+            {
+                input = layer.ForwardPass(input);
+            }
+            return input;
+        }
+
+        public override float[] BackwardPass(float[] gradient)
+        {
+            ValidateInput(gradient, Direction.Backward);
+            foreach (Layer layer in Layers.Reverse<Layer>())
+            {
+                gradient = layer.BackwardPass(gradient);
+            }
+            return gradient;
+        }
+
+        protected override void ValidateInput(float[] input, Direction direction = Direction.Forward)
+        {
+           int layerSize = direction == Direction.Forward ? InputSize : OutputSize;
+           if (input.Length != layerSize)
+            {
+                var error = $"Inputs size: {input.Length} doesn't match " +
+                            $"the number of connections: {layerSize}";
+                throw new ArgumentException(error);
+            }
         }
 
         public override string ToString()
         {
-            var parameters = new Dictionary<string, String>()
-            { 
-                { "Net", this.Name }, 
-                { "Depth", (this._numberOfHiddenLayers + 2).ToString() }, 
-                { "Sizes", 
-                    this._inputSize + " x " + 
-                    String.Join(" x ", this.layers.Select (l => l.neurons.Count ()))
-                },
+            int[] layerSizes = Layers.Select(l => l.Neurons.Count()).ToArray();
+            var parameters = new Dictionary<string, string>()
+            {
+                { "Name", Name },
+                { "Depth", (NumberOfHiddenLayers + 2).ToString() },
+                { "Sizes", InputSize + " x " + string.Join(" x ", layerSizes) },
             };
             var printable = parameters.Select(p => p.Key + ": " + p.Value);
-            return String.Join(Environment.NewLine, printable);
+            return string.Join(Environment.NewLine, printable);
         }
 
-        public override float[] ForwardPass(float[] input)
+        public void SetLearningRate(float learningRate)
         {
-
-            var output = new float[_inputSize];
-            foreach (var layer in this.layers)
+            foreach (Layer layer in Layers)
             {
-                output = layer.ForwardPass(input);
-                input = output;
+                layer.SetLearningRate(learningRate);
             }
-            return output;
         }
 
-        public override void BackwardPass(float[] gradient)
+        public void DumpState(string path)
         {
 
         }
 
-        protected override void ValidateInput(float[] input)
+        public void LoadState(string path)
         {
-            // FIXME: Won't work on backward pass. Change this
-            if (input.Length != this._inputSize)
-            {
-                throw new ArgumentException($"Inputs size: {input.Length} doesn't match the number of connections: {this._inputSize}");
-            }
+
         }
     }
 
-
     public class Layer : Module
     {
-        public List<Neuron> neurons { get; } = new List<Neuron>();
-        public Layer(int numberOfNeurons, int numberOfConnections, bool activation = true)
+        public int NumberOfNeurons { get; }
+        public int NumberOfConnections { get; }
+        public List<Neuron> Neurons { get; } = new List<Neuron>();
+
+        public Layer(int numberOfNeurons, int numberOfConnections, Function activation = null)
         {
+            if ((numberOfNeurons < 1) || (numberOfConnections < 1))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            NumberOfNeurons = numberOfNeurons;
+            NumberOfConnections = numberOfConnections;
+
             for (int i = 0; i < numberOfNeurons; ++i)
             {
-                neurons.Add(new Neuron(numberOfConnections, activation));
+                Neurons.Add(new Neuron(numberOfConnections, activation));
             }
         }
 
         public override float[] ForwardPass(float[] input)
         {
-            var results = new float[this.neurons.Count()];
-            for (int i = 0; i < this.neurons.Count(); ++i)
+            var results = new float[NumberOfNeurons];
+            for (int i = 0; i < NumberOfNeurons; ++i)
             {
-                results[i] = this.neurons[i].ForwardPass(input);
+                results[i] = Neurons[i].ForwardPass(input);
             }
             return results;
         }
 
-        public override void BackwardPass(float[] gradient)
+        protected override void ValidateInput(float[] input, Direction direction)
         {
-
+            if (input.Length != NumberOfNeurons)
+            {
+                var error = $"Inputs size: {input.Length} doesn't match " +
+                            $"the number of connections: {NumberOfNeurons}";
+                throw new ArgumentException(error);
+            }
         }
 
-        protected override void ValidateInput(float[] input)
+        public override float[] BackwardPass(float[] gradient)
         {
+            // Obtain all the weighted errors from neurons
+            // Sum them all per each connection (axis = 0)
+            // Profit!
+            var neuronsErrors = new float[NumberOfNeurons][];
+            for (int i = 0; i < NumberOfNeurons; ++i)
+            {
+                neuronsErrors[i] = Neurons[i].BackwardPass(gradient[i]);
+            }
 
+            var layerGradient = new float[NumberOfConnections];
+            for (int i = 0; i < NumberOfNeurons; ++i)
+            {
+                for (int j = 0; j < NumberOfConnections; ++j)
+                {
+                    layerGradient[j] += neuronsErrors[i][j];
+                }
+            }
+            return layerGradient;
         }
-    }
 
-    public abstract class Atom<T>
-    {
-        public abstract T ForwardPass(float[] input);
-        public abstract void BackwardPass(float[] gradient);
-        protected abstract void ValidateInput(float[] input);
-    }
-
-    public abstract class Module : Atom<float[]>
-    {
-
-    }
-
-    public abstract class Unit : Atom<float>
-    {
-
+        public void SetLearningRate(float learningRate)
+        {
+            foreach (Neuron neuron in Neurons)
+                {
+                    neuron.LearningRate = learningRate;
+                }
+        }
     }
 }

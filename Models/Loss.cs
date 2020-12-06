@@ -1,34 +1,46 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 
-namespace stupidnet.Models
+namespace TTT.Models
 {
-    public abstract class Loss
+    public abstract class Loss: IFunction<Tuple<float[], float[]>, float[]>
     {
-        //public abstract float Calculate(float[] predictions, float[] trueValues);
-        protected void ValidateInput(float[] predictions, float[] trueValues)
+        public abstract float[] Calculate(Tuple<float[], float[]> outputsAndTargets);
+        public abstract float[] Derivative(Tuple<float[], float[]> outputsAndTargets);
+
+        protected void ValidateInput(Tuple<float[], float[]> outputsAndTargets)
         {
-            if(predictions.Length != trueValues.Length)
+            var outputs = outputsAndTargets.Item1;
+            var targets = outputsAndTargets.Item2;
+            if (outputs.Length != targets.Length)
             {
-                throw  new ArgumentException("Can't calculate loss!\n" +
-                $"Size mismatch: {predictions.Length} and {trueValues.Length}");
+                var error = "Can't calculate loss!\nSize mismatch: " +
+                            $"{outputs.Length} and {targets.Length}";
+                throw new ArgumentException(error);
             }
         }
     }
 
     public class MSELoss : Loss
     {
-        public float Calculate(float[] predictions, float[] trueValues)
+        public override float[] Calculate(Tuple<float[], float[]> outputsAndTargets)
         {
-            ValidateInput(predictions, trueValues);
-            var n = predictions.Length;
-            var sum = 0f;
-            for (int i = 0; i < n; ++i)
-            {
-                sum += (float) Math.Pow((trueValues[i] - predictions[i]), 2);
-            }
-            return sum / n;
-            // May be also handy to divide by 2 because of derivative
+            ValidateInput(outputsAndTargets);
+            float[] results = outputsAndTargets.Item2.Zip(
+                outputsAndTargets.Item1,
+                (y, y_) => 0.5f * ((float)Math.Pow(y - y_, 2))
+            ).ToArray();
+            return results;
+        }
+
+        public override float[] Derivative(Tuple<float[], float[]> outputsAndTargets)
+        {
+            ValidateInput(outputsAndTargets);
+            float[] results = outputsAndTargets.Item2.Zip(
+                outputsAndTargets.Item1,
+                (y, y_) => -(y - y_)
+            ).ToArray();
+            return results;
         }
     }
 }
