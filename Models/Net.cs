@@ -11,7 +11,7 @@ namespace TTT.Models
         public string Name { get; }
         public int InputSize { get; }
         public int OutputSize { get; }
-        public int HiddenLayerSize { get; }
+        public int[] HiddenLayerSizes { get; }
         public int NumberOfHiddenLayers { get; }
 
         public List<Layer> Layers { get; } = new List<Layer>();
@@ -21,8 +21,8 @@ namespace TTT.Models
             string name,
             int inputSize,
             int outputSize,
-            int numberOfHiddenLayers = 0,
-            int hiddenLayerSize = 2,
+            int numberOfHiddenLayers,
+            int[] hiddenLayersSizes,
             Function activation = null,
             bool outputActivations = true)
         {
@@ -31,31 +31,23 @@ namespace TTT.Models
             OutputSize = outputSize;
 
             NumberOfHiddenLayers = numberOfHiddenLayers;
-            HiddenLayerSize = hiddenLayerSize;
+            HiddenLayerSizes = hiddenLayersSizes;
 
             if (activation == null) {
                 activation = new Sigmoid();
             }
 
             Activation = activation;
-
             int numberOfConnections = InputSize;
 
             for (int i = 0; i < NumberOfHiddenLayers; ++i)
             {
                 
-                Layers.Add(new Layer(hiddenLayerSize, numberOfConnections, Activation));
+                Layers.Add(new Layer(hiddenLayersSizes[i], numberOfConnections, Activation));
                 numberOfConnections = Layers.Last().NumberOfNeurons;
             }
 
-            if (outputActivations) 
-            {
-                Layers.Add(new Layer(outputSize, hiddenLayerSize, Activation));
-            }
-            else 
-            {
-                Layers.Add(new Layer(outputSize, hiddenLayerSize)); 
-            }            
+            Layers.Add(new Layer(outputSize, hiddenLayersSizes[NumberOfHiddenLayers - 1], outputActivations ? Activation : null));
         }
 
         public override float[] ForwardPass(float[] input)
@@ -83,9 +75,10 @@ namespace TTT.Models
            int layerSize = direction == Direction.Forward ? InputSize : OutputSize;
            if (input.Length != layerSize)
             {
-                var error = $"Inputs size: {input.Length} doesn't match " +
-                            $"the number of connections: {layerSize}";
-                throw new ArgumentException(error);
+                throw new ArgumentException(
+                    $"Inputs size: {input.Length} doesn't match " +
+                    $"the number of connections: {layerSize}"
+                    );
             }
         }
 
@@ -110,42 +103,57 @@ namespace TTT.Models
             }
         }
 
-        public void DumpStateToFile(string pathToWeights, int precision)
+        public string DumpStateToString(int precision)
         {
             string format = "{0:G" + precision + "}";
+            int neuronIdx = 0;
             var sb = new System.Text.StringBuilder();
             foreach (var layer in Layers)
             {
-                int neuronIdx = 0;
                 foreach (var neuron in layer.Neurons)
                 {
-                    var s = string.Join(", ", neuron.Weights.Select(w => String.Format(format, w)).ToArray());
-                    sb.AppendLine(s);
+                    sb.Append($"{neuronIdx}:");
+                    sb.Append(string.Join(',', neuron.Weights.Select(w => String.Format(format, w))));
+                    sb.AppendLine(";");
                     neuronIdx++;
                 }
             }
-            File.WriteAllLines(pathToWeights, new string[]{ sb.ToString() });
+            return sb.ToString();
+        }
+
+        public void DumpStateToFile(string pathToWeights, int precision)
+        {
+            var weightsString = DumpStateToString(precision: precision);
+            File.WriteAllLines(pathToWeights, new string[]{ weightsString });
+        }
+
+        private string[] CorrectWeightsEntries(string[] weightsEntry)
+        {
+            return weightsEntry.Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
         }
 
         public void LoadStateFromString(string weightsString)
         {
             Dictionary<int, Neuron> neuronsMap = new Dictionary<int, Neuron>();
+            int neuronIdx = 0;
             foreach (var layer in Layers)
             {
-                int neuronIdx = 0;
                 foreach (var neuron in layer.Neurons)
                 {
                     neuronsMap.Add(neuronIdx, neuron);
                     neuronIdx++;
                 }
             }
-            foreach (var line in weightsString.Split('\n'))
+            foreach (var line in CorrectWeightsEntries(weightsString.Split(';')))
             {
-                var parsedString = line.Split(':');
-                int neuronId = int.Parse(parsedString[0]);
+                string[] parsedString = line.Split(':');
+                int neuronId = int.Parse(parsedString.First());
                 var neuron = neuronsMap[neuronId];
                 
-                float[] weights = parsedString[1].Split(';')[0].Select(v => float.Parse(v)).ToArray();
+                float[] weights = parsedString[1].Split(',')
+                    .Select(v => float.Parse(v.ToString()))
+                    .ToArray();
+
                 if (weights.Length != neuron.Weights.Length)
                 {
                     throw new Exception(
@@ -157,10 +165,10 @@ namespace TTT.Models
             }
         }
 
-        public void LoadState(string path)
+        public void LoadStateFromFile(string path)
         {
-            string[] lines = File.ReadAllLines(path);
-            string weightsString = lines.Join();
+            string[] lines = CorrectWeightsEntries(File.ReadAllLines(path));
+            string weightsString = string.Join("", lines);
             LoadStateFromString(weightsString);
         }
     }

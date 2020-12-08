@@ -13,7 +13,7 @@ namespace TTT.Models
         private int _sideSize;
 
         public Dictionary<char, int> EncodingsMap { get; }
-        public int Length { get => _data.GetLength(0) / _sideSize; }
+        public int Length { get => _data.GetLength(0); }
 
         public Dataset(string pathToData, string pathToLabels, int sideSize) {
             _sideSize = sideSize;

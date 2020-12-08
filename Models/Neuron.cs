@@ -32,15 +32,14 @@ namespace TTT.Models
             _learningRate = learningRate;
 
             // Initialize weights and biases
-            Random gen = new Random();
-            float eps = .001f;
+            var rnd = new Random(Config.RANDOM_SEED);
 
             _weights = new float[numberOfConnections];
-            _bias = (float)(gen.NextDouble() + eps) % 1;
+            _bias = (float)(rnd.NextDouble() + Config.EPS) % Config.MAX_INIT_WEIGHTS;
 
             for (int i = 0; i < numberOfConnections; ++i)
             {
-                _weights[i] = (float)(gen.NextDouble() + eps) % 1;
+                _weights[i] = (float)(rnd.NextDouble() + Config.EPS) % Config.MAX_INIT_WEIGHTS;
             }
         }
 
