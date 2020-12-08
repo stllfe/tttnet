@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+
 
 namespace TTT.Models
 {
@@ -13,7 +15,6 @@ namespace TTT.Models
         public int NumberOfHiddenLayers { get; }
 
         public List<Layer> Layers { get; } = new List<Layer>();
-
         public Function Activation { get; }
 
         public Net(
@@ -109,14 +110,58 @@ namespace TTT.Models
             }
         }
 
-        public void DumpState(string path)
+        public void DumpStateToFile(string pathToWeights, int precision)
         {
+            string format = "{0:G" + precision + "}";
+            var sb = new System.Text.StringBuilder();
+            foreach (var layer in Layers)
+            {
+                int neuronIdx = 0;
+                foreach (var neuron in layer.Neurons)
+                {
+                    var s = string.Join(", ", neuron.Weights.Select(w => String.Format(format, w)).ToArray());
+                    sb.AppendLine(s);
+                    neuronIdx++;
+                }
+            }
+            File.WriteAllLines(pathToWeights, new string[]{ sb.ToString() });
+        }
 
+        public void LoadStateFromString(string weightsString)
+        {
+            Dictionary<int, Neuron> neuronsMap = new Dictionary<int, Neuron>();
+            foreach (var layer in Layers)
+            {
+                int neuronIdx = 0;
+                foreach (var neuron in layer.Neurons)
+                {
+                    neuronsMap.Add(neuronIdx, neuron);
+                    neuronIdx++;
+                }
+            }
+            foreach (var line in weightsString.Split('\n'))
+            {
+                var parsedString = line.Split(':');
+                int neuronId = int.Parse(parsedString[0]);
+                var neuron = neuronsMap[neuronId];
+                
+                float[] weights = parsedString[1].Split(';')[0].Select(v => float.Parse(v)).ToArray();
+                if (weights.Length != neuron.Weights.Length)
+                {
+                    throw new Exception(
+                        $"Size mismatch for neuron: {neuronId}. " +
+                        $"Expected: {neuron.Weights.Length}; got: {weights.Length} weights."
+                        );
+                }
+                neuron.Weights = weights;
+            }
         }
 
         public void LoadState(string path)
         {
-
+            string[] lines = File.ReadAllLines(path);
+            string weightsString = lines.Join();
+            LoadStateFromString(weightsString);
         }
     }
 

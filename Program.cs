@@ -7,7 +7,7 @@ using TTT.Models;
 namespace TTT
 {
     class Program
-    {
+    { 
         static void Main()
         {
             string rootFolderPath = Environment.CurrentDirectory;
@@ -24,6 +24,7 @@ namespace TTT
                 net: CreateTTTNet(), 
                 lossFn: new MSELoss(), 
                 dataset: dataset,
+                rootFolderPath: rootFolderPath,
                 epoches: 35,
                 logEvery: 5
                 );
@@ -50,6 +51,7 @@ namespace TTT
             Net net,
             Loss lossFn,
             Dataset dataset,
+            string rootFolderPath,
             int epoches = 100,
             int logEvery = 10
             )
@@ -62,8 +64,6 @@ namespace TTT
             for (int epoch = 0; epoch < epoches; ++epoch)
             {
                 var epochLosses = new float[numberOfExamples];
-
-                // Starting from 1, since we took one item for testing.
                 for (int i = 0; i < numberOfExamples; ++i)
                 {
                     var dataAndAnswer = dataset.GetItem(i);
@@ -80,13 +80,15 @@ namespace TTT
                     var output = net.ForwardPass(dataAndAnswer.Item1);
                     var outputAndAnwer = new Tuple<float[], float[]>(output, dataAndAnswer.Item2);
 
-
                     Console.WriteLine(separator);
                     Console.WriteLine($"true: {string.Join(", ", dataAndAnswer.Item2)}\tpredicted: {string.Join(", ", output)}");
                     Console.WriteLine(separator);
                 }
                 Console.WriteLine($"epoch: [{epoch + 1}/{epoches}]\tmean loss: {epochLosses.Average()}");
             }
+            var savePath = $"{rootFolderPath}/weights.txt";
+            net.DumpStateToFile(pathToWeights: savePath, precision: 5);
+            Console.WriteLine($"\nSaved model weights to: {savePath}");
         }
     }
 }

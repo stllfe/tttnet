@@ -12,6 +12,7 @@ namespace TTT.Models
         private bool _withActivation;
         private float _learningRate;
         public float LearningRate { get => _learningRate; set => _learningRate = value; }
+        public float[] Weights { get => _weights; set => _weights = value; }
 
         private Function _activationFn;
 
@@ -88,5 +89,4 @@ namespace TTT.Models
             return string.Join(Environment.NewLine, printable);
         }
     }
-
 }
