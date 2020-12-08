@@ -1,6 +1,7 @@
 ﻿using System;
-using TTT.Models;
+using System.IO;
 using System.Linq;
+using TTT.Models;
 
 
 namespace TTT
@@ -9,7 +10,7 @@ namespace TTT
     {
         static void Main()
         {
-            string rootFolderPath = @"/Users/olegpavlovich/Projects/tttnet";
+            string rootFolderPath = Environment.CurrentDirectory;
             string trainingDataPath = $"{rootFolderPath}/trainingData.txt";
             string trainingLabelsPath = $"{rootFolderPath}/trainingLabels.txt";
             
