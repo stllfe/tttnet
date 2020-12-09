@@ -78,7 +78,7 @@ namespace TTT.Models
                 throw new ArgumentException(
                     $"Inputs size: {input.Length} doesn't match " +
                     $"the number of connections: {layerSize}"
-                    );
+                );
             }
         }
 
@@ -159,7 +159,7 @@ namespace TTT.Models
                     throw new Exception(
                         $"Size mismatch for neuron: {neuronId}. " +
                         $"Expected: {neuron.Weights.Length}; got: {weights.Length} weights."
-                        );
+                    );
                 }
                 neuron.Weights = weights;
             }
@@ -208,9 +208,10 @@ namespace TTT.Models
         {
             if (input.Length != NumberOfNeurons)
             {
-                var error = $"Inputs size: {input.Length} doesn't match " +
-                            $"the number of connections: {NumberOfNeurons}";
-                throw new ArgumentException(error);
+                throw new ArgumentException(
+                    $"Inputs size: {input.Length} doesn't match " +
+                    $"the number of connections: {NumberOfNeurons}"
+                );
             }
         }
 

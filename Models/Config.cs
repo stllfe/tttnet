@@ -1,4 +1,4 @@
-{
+namespace TTT{
     public static class Config
     {
         public const int RANDOM_SEED = 666;

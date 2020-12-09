@@ -48,8 +48,10 @@ namespace TTT.Models
             ValidateInput(input);
             var signals = input.Zip(_weights, (i, w) => i * w);
             var signal = signals.Sum() + _bias;
+            
             _lastInput = input;
             _lastSignal = signal;
+            
             return _withActivation ? _activationFn.Calculate(signal) : signal;
         } 
 
@@ -69,23 +71,12 @@ namespace TTT.Models
 
         protected override void ValidateInput(float[] input)
         {
-            var error = $"Inputs size: {input.Length} doesn't match " +
-                        $"the number of connections: {_weights.Length}";
             if (input.Length != _weights.Length){
-                throw new ArgumentException();
+                throw new ArgumentException(
+                    $"Inputs size: {input.Length} doesn't match " +
+                    $"the number of connections: {_weights.Length}"
+                );
             }
-        }
-
-        public override string ToString()
-        {
-            var parameters = new Dictionary<string, string>()
-            {
-                { "Connections", _weights.Length.ToString() },
-                { "Weights", string.Join("; ", _weights) },
-                { "Bias", _bias.ToString() },
-            };
-            var printable = parameters.Select(p => p.Key + ": " + p.Value);
-            return string.Join(Environment.NewLine, printable);
         }
     }
 }

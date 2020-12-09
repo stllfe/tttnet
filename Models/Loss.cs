@@ -14,9 +14,10 @@ namespace TTT.Models
             var targets = outputsAndTargets.Item2;
             if (outputs.Length != targets.Length)
             {
-                var error = "Can't calculate loss!\nSize mismatch: " +
-                            $"{outputs.Length} and {targets.Length}";
-                throw new ArgumentException(error);
+                throw new ArgumentException(
+                    "Can't calculate loss!\nSize mismatch: " +
+                    $"{outputs.Length} and {targets.Length}"
+                );
             }
         }
     }
