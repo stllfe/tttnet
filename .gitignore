@@ -212,6 +212,10 @@ project.lock.json
 *.feature.xlsx.*
 *.Specs_*.html
 
+
+# PyCache
+**/*__pycache__
+
 #####
 # End of core ignore list, below put you custom 'per project' settings (patterns or path)
 #####
