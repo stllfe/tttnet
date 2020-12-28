@@ -26,8 +26,7 @@ namespace TTT.Models
             _rawData = ReadData(pathToData);
             if (_rawData.Length % sideSize != 0)
             {
-                var error = $"Data doesn't fit the provided board size: {sideSize}x{sideSize}";
-                throw new Exception(error);
+                throw new Exception($"Data doesn't fit the provided board size: {sideSize}x{sideSize}");
             }
 
             EncodingsMap = CreateEncodingsMap(_rawData);
@@ -68,9 +67,10 @@ namespace TTT.Models
 
             if (lengths.First() != lengths.Last())
             {
-                var error = "Data is not properly structured\n" +
-                            "Number of characters per line is different.";
-                throw new Exception(error);
+                throw new Exception(
+                    "Data is not properly structured\n" +
+                    "Number of characters per line is different."
+                );
             }
         }
 

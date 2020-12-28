@@ -15,22 +15,34 @@ namespace TTT
         static void Main()
         {
             string rootFolderPath = Environment.CurrentDirectory;
-            string trainingDataPath = $"{rootFolderPath}/trainingData.txt";
-            string trainingLabelsPath = $"{rootFolderPath}/trainingLabels.txt";
             string weightsSavePath = $"{rootFolderPath}/weights.txt";
             
-            var dataset = new Dataset(
-                pathToData: trainingDataPath, 
-                pathToLabels: trainingLabelsPath, 
+            string trainDataPath = $"{rootFolderPath}/trainData.txt";
+            string trainLabelsPath = $"{rootFolderPath}/trainLabels.txt";
+            
+            string testDataPath = $"{rootFolderPath}/testData.txt";
+            string testLabelsPath = $"{rootFolderPath}/testLabels.txt";
+            
+            var trainDataset = new Dataset(
+                pathToData: trainDataPath, 
+                pathToLabels: trainLabelsPath, 
+                sideSize: 4
+                );
+
+            var testDataset = new Dataset(
+                pathToData: testDataPath, 
+                pathToLabels: testLabelsPath, 
                 sideSize: 4
                 );
 
             var net = CreateTTTNet();
+            var loss = new MSELoss();
 
             Train(
                 net: net, 
-                lossFn: new MSELoss(), 
-                dataset: dataset
+                lossFn: loss, 
+                dataset: trainDataset,
+                validationRatio: 0.2f
                 );
             
             var weightsString = net.DumpStateToString(precision: Config.WEIGHTS_PRECISION);
@@ -38,8 +50,8 @@ namespace TTT
 
             Test(
                 net: net,
-                lossFn: new MSELoss(),
-                dataset: dataset
+                lossFn: loss,
+                dataset: testDataset
             );
         }
 
@@ -53,7 +65,7 @@ namespace TTT
                 numberOfHiddenLayers: Config.NUM_HIDDEN_LAYERS,
                 hiddenLayersSizes: Config.HIDDEN_LAYERS_SIZES,
                 outputActivations: false
-                );            
+            );            
             Console.WriteLine("The following NN is created:\n");
             Console.WriteLine(net.ToString() + '\n');
             return net;
@@ -79,21 +91,25 @@ namespace TTT
             Loss lossFn,
             Dataset dataset,
             int epochs = Config.NUM_EPOCHS,
-            int logEvery = Config.LOG_EVERY
-            )
+            int logEvery = Config.LOG_EVERY,
+            float validationRatio = 0.2f
+        )
         {
             net.SetLearningRate(Config.LEARNING_RATE);
+
             Console.WriteLine(STARLINE);
             Console.WriteLine("TRAINING");
             Console.WriteLine(UNDERLINE);
 
-            // Reserve the first element for testing.
-            var numberOfExamples = dataset.Length - 2;
+            // Reserve some elements for validation
+            var validationSize = (int) MathF.Round(dataset.Length * validationRatio);
+            var numberOfExamples = dataset.Length - validationSize;
+            var validationIndices = Enumerable.Range(0, validationSize).ToArray();
 
             for (int epoch = 0; epoch < epochs; ++epoch)
             {
                 var epochLosses = new float[numberOfExamples];
-                for (int i = 0; i < numberOfExamples; ++i)
+                for (int i = validationSize; i < numberOfExamples; ++i)
                 {
                     var dataAndAnswer = dataset.GetItem(i + 2);
                     var output = net.ForwardPass(dataAndAnswer.Item1);
@@ -106,18 +122,16 @@ namespace TTT
 
                 Console.WriteLine($"epoch: [{epoch + 1}/{epochs}]\tmean loss: {epochLosses.Average()}");
                 
-                // Log results if needed.
+                // Log validation results if needed
                 if ((epoch + 1) % logEvery == 0)
                 {
                     Console.WriteLine(UNDERLINE);
-                    for (int i = 0; i < 4; ++i)
-                    {  
-                        var dataAndAnswer = dataset.GetItem(i); 
-                        var output = net.ForwardPass(dataAndAnswer.Item1);
-                        var outputAndAnwer = new Tuple<float[], float[]>(output, dataAndAnswer.Item2);
-
-                        Console.WriteLine($"true: {string.Join(", ", dataAndAnswer.Item2)}\tpredicted: {string.Join(", ", output)}");
-                    }
+                    Evaluate(
+                        net: net,
+                        lossFn: lossFn,
+                        dataset: dataset,
+                        indices: validationIndices
+                    );
                     Console.WriteLine(SEPARATOR);
                 }
             }
@@ -125,21 +139,18 @@ namespace TTT
             Console.WriteLine(STARLINE);
         }
 
-        static void Test(
+        static private void Evaluate(
             Net net,
             Loss lossFn,
-            Dataset dataset
-            )
+            Dataset dataset,
+            int[] indices
+        )
         {
-            Console.WriteLine(STARLINE);
-            Console.WriteLine("TESTING");
-            Console.WriteLine(UNDERLINE);
-
-            var numberOfExamples = 2;
-
+            var numberOfExamples = dataset.Length;
             var losses = new float[numberOfExamples];
             var indicators = new float[numberOfExamples];
-            for (int i = 0; i < numberOfExamples; ++i)
+
+            foreach (int i in indices)
             {
                 var dataAndAnswer = dataset.GetItem(i);
                 var output = net.ForwardPass(dataAndAnswer.Item1);
@@ -150,8 +161,29 @@ namespace TTT
                     (MathF.Round(output[0]) == dataAndAnswer.Item2[0]) &&
                     (MathF.Round(output[1]) == dataAndAnswer.Item2[1])
                 );
+
+                Console.WriteLine($"true: {string.Join(", ", dataAndAnswer.Item2)}\tpredicted: {string.Join(", ", output)}");
             }
             Console.WriteLine($"accuracy: {indicators.Average()}\tmean loss: {losses.Average()}");
+        }
+
+        static void Test(
+            Net net,
+            Loss lossFn,
+            Dataset dataset
+        )
+        {
+            Console.WriteLine(STARLINE);
+            Console.WriteLine("TESTING");
+            Console.WriteLine(UNDERLINE);
+
+            Evaluate(
+                net: net,
+                lossFn: lossFn,
+                dataset: dataset,
+                indices: Enumerable.Range(0, dataset.Length).ToArray()
+            );
+
             Console.WriteLine("\nFINISHED");
             Console.WriteLine(STARLINE);
         }
