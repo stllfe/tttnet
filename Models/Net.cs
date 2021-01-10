@@ -114,6 +114,7 @@ namespace TTT.Models
                 {
                     sb.Append($"{neuronIdx}:");
                     sb.Append(string.Join(',', neuron.Weights.Select(w => String.Format(format, w))));
+                    sb.Append(",b" + string.Format(format, neuron.Bias));
                     sb.AppendLine(";");
                     neuronIdx++;
                 }
@@ -150,9 +151,15 @@ namespace TTT.Models
                 int neuronId = int.Parse(parsedString.First());
                 var neuron = neuronsMap[neuronId];
                 
-                float[] weights = parsedString[1].Split(',')
+                string[] splittedWeights = parsedString.Last().Split(',');
+
+                float[] weights = splittedWeights
+                    .Where(v => !v.StartsWith('b'))
                     .Select(v => float.Parse(v.ToString()))
                     .ToArray();
+                
+                // Find the b<value> element and strip the leading 'b'
+                float bias = float.Parse(splittedWeights.Where(v => v.StartsWith('b')).ToArray().First().Substring(1));
 
                 if (weights.Length != neuron.Weights.Length)
                 {
@@ -162,6 +169,7 @@ namespace TTT.Models
                     );
                 }
                 neuron.Weights = weights;
+                neuron.Bias = bias;
             }
         }
 

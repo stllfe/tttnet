@@ -2,8 +2,6 @@ import os
 import random
 import sys
 
-from typing import Tuple
-
 
 def get_matrix(fill='.'):
     values = list()
@@ -30,7 +28,7 @@ def matrix2str(matrix, sep=' '):
     return s
 
 
-def _generate_one() -> Tuple[str, Tuple[int, int]]:
+def _generate_one():
     matrix, indices = get_matrix()
 
     # Generate all the possible "win" lines where Xs will be generated.
@@ -62,8 +60,7 @@ def _generate_one() -> Tuple[str, Tuple[int, int]]:
     fill_matrix(matrix, o_indices, fill='O')
     fill_matrix(matrix, x_indices, fill='X')
 
-    return matrix, answer_idx
-
+    return matrix, tuple(idx + 1 for idx in answer_idx)
 
 
 def generate(n=1, save_path: str = './'):

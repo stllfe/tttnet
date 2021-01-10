@@ -95,8 +95,6 @@ namespace TTT
             float validationRatio = 0.2f
         )
         {
-            net.SetLearningRate(Config.LEARNING_RATE);
-
             Console.WriteLine(STARLINE);
             Console.WriteLine("TRAINING");
             Console.WriteLine(UNDERLINE);
@@ -105,33 +103,51 @@ namespace TTT
             var validationSize = (int) MathF.Round(dataset.Length * validationRatio);
             var numberOfExamples = dataset.Length - validationSize;
             var validationIndices = Enumerable.Range(0, validationSize).ToArray();
+            
+            string epochFormat = 'D' + epochs.ToString().Length.ToString();
+            
+            var learningRate = Config.LEARNING_RATE;
 
             for (int epoch = 0; epoch < epochs; ++epoch)
             {
                 var epochLosses = new float[numberOfExamples];
+                var epochIndicators = new float[numberOfExamples];
+                net.SetLearningRate(learningRate);
                 for (int i = validationSize; i < numberOfExamples; ++i)
                 {
-                    var dataAndAnswer = dataset.GetItem(i + 2);
+                    var dataAndAnswer = dataset.GetItem(i);
                     var output = net.ForwardPass(dataAndAnswer.Item1);
                     var outputAndAnswer = new Tuple<float[], float[]>(output, dataAndAnswer.Item2);
                     var gradient = lossFn.Derivative(outputAndAnswer);
 
                     epochLosses[i] = lossFn.Calculate(outputAndAnswer).Average();
+                    epochIndicators[i] = Convert.ToSingle(
+                    (MathF.Round(output[0]) == dataAndAnswer.Item2[0]) &&
+                    (MathF.Round(output[1]) == dataAndAnswer.Item2[1])
+                );
                     net.BackwardPass(gradient);
                 }
 
-                Console.WriteLine($"epoch: [{epoch + 1}/{epochs}]\tmean loss: {epochLosses.Average()}");
+                Console.WriteLine($"epoch: [{(epoch + 1).ToString(epochFormat)}/{epochs}]\tmean loss: {epochLosses.Average():F5}\taccuracy: {epochIndicators.Average()}");
                 
                 // Log validation results if needed
                 if ((epoch + 1) % logEvery == 0)
                 {
-                    Console.WriteLine(UNDERLINE);
+                    Console.WriteLine(SEPARATOR);
                     Evaluate(
                         net: net,
                         lossFn: lossFn,
                         dataset: dataset,
                         indices: validationIndices
                     );
+                    Console.WriteLine(SEPARATOR);
+                }
+                if ((epoch + 1) % (epochs / 3) == 0)
+                {
+                    var newLearningRate = learningRate * 0.1f;
+                    Console.WriteLine(SEPARATOR);
+                    Console.WriteLine($"Learning rate decayed from: {learningRate} to {newLearningRate}");
+                    learningRate = newLearningRate;
                     Console.WriteLine(SEPARATOR);
                 }
             }
@@ -164,6 +180,7 @@ namespace TTT
 
                 Console.WriteLine($"true: {string.Join(", ", dataAndAnswer.Item2)}\tpredicted: {string.Join(", ", output)}");
             }
+            Console.WriteLine(UNDERLINE);
             Console.WriteLine($"accuracy: {indicators.Average()}\tmean loss: {losses.Average()}");
         }
 
